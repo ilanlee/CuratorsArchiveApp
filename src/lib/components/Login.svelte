@@ -1,27 +1,34 @@
 <script>
-    import { signInWithEmailAndPassword } from 'firebase/auth';
-    import { auth } from '$lib/utils/firebase';
+  import { writable } from 'svelte/store';
+
+  let email = '';
+  let password = '';
+  export let onSubmit = async () => {}; // Function passed as a prop
+  export let errorMessage = writable('');
   
-    async function handleLogin(event) {
-      event.preventDefault();
-  
-      const email = event.target.email.value;
-      const password = event.target.password.value;
-  
-      try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-        console.log('User logged in:', user);
-        // TODO: Redirect to a protected page or update UI
-      } catch (error) {
-        console.error('Error logging in:', error);
-        // TODO: Display error message to the user
-      }
+  async function handleSubmit(event) {
+    event.preventDefault();
+    try {
+      await onSubmit({ email, password });
+    } catch (error) {
+      errorMessage.set(error.message || 'An error occurred');
     }
-  </script>
-  
-  <form on:submit={handleLogin} class="p-4">
-    <input type="email" name="email" placeholder="Email" class="border p-2 mb-2" />
-    <input type="password" name="password" placeholder="Password" class="border p-2 mb-2" />
-    <button type="submit" class="bg-blue-500 text-white p-2 rounded">Log in</button>
-  </form>
+  }
+</script>
+
+<form on:submit|preventDefault={handleSubmit}>
+  <label for="email">Email</label>
+  <input id="email" type="email" bind:value={email} required />
+
+  <label for="password">Password</label>
+  <input id="password" type="password" bind:value={password} required />
+
+  <button type="submit">Login</button>
+  {#if $errorMessage}
+    <p style="color: red;">{$errorMessage}</p>
+  {/if}
+</form>
+
+<style>
+  /* Add your styles here */
+</style>
